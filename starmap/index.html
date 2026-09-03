@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star Map — Poster Lab</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+  .field { display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 10px; margin: 6px 0; font-size: 12px; color: var(--mute); }
+  .field input { width: 100%; margin: 0; }
+  .err { border-color: #d64545 !important; }
+  label.chk { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+</style>
+</head>
+<body>
+<header><h1><a href="../">Poster Lab</a> / Star Map</h1><span>the sky above a place, on a night</span></header>
+<main>
+  <div class="stage"><canvas id="sheet"></canvas></div>
+  <aside>
+    <section><h2>Where</h2>
+      <div class="row"><input id="place" type="text" placeholder="City or place" style="flex:1;margin:0"><button id="search">Search</button><button id="locate" title="Use my location">📍</button></div>
+      <div class="field"><span>Latitude</span><input id="lat" type="number" step="0.0001" min="-90" max="90"></div>
+      <div class="field"><span>Longitude</span><input id="lng" type="number" step="0.0001" min="-180" max="180"></div>
+    </section>
+    <section><h2>When</h2>
+      <div class="field"><span>Date</span><input id="date" type="date"></div>
+      <div class="field"><span>Local time</span><input id="time" type="time"></div>
+    </section>
+    <section><h2>Text</h2>
+      <input id="title" type="text" placeholder="Title (defaults to place name)" maxlength="30">
+      <label class="chk"><input id="lines" type="checkbox"> Constellation lines</label>
+    </section>
+    <section><h2>Palette</h2><div id="themes"></div></section>
+    <section class="actions"><h2>Sheet</h2>
+      <div class="row">
+        <select id="size"><option value="2">PNG 2000×2828</option><option value="3" selected>PNG 3000×4242</option><option value="5">PNG 5000×7070</option></select>
+        <button id="download" class="primary">Download</button>
+        <button id="copy">Copy link</button>
+      </div>
+      <p class="hint">Everything runs in your browser. Place search uses OpenStreetMap Nominatim.</p>
+    </section>
+  </aside>
+</main>
+<script type="module" src="starmap.js"></script>
+</body>
+</html>

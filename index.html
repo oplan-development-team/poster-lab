@@ -3,68 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Poster Lab — generative poster maker</title>
+<title>Poster Lab</title>
+<link rel="stylesheet" href="shared.css">
 <style>
-  :root { --bg: #0e0e0f; --fg: #e9e7e1; --mute: #7d7b76; --line: #232325; --panel: #151517; }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, "Helvetica Neue", Inter, Arial, sans-serif; }
-  header { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 32px; border-bottom: 1px solid var(--line); }
-  header h1 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
-  header span { color: var(--mute); font-size: 12px; }
-  main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 32px; padding: 32px; max-width: 1400px; margin: 0 auto; }
-  .stage { display: flex; justify-content: center; align-items: flex-start; }
-  #sheet { width: min(100%, calc((100vh - 130px) / 1.414)); aspect-ratio: 1 / 1.414; box-shadow: 0 30px 80px rgba(0,0,0,.6); display: block; }
-  aside { display: flex; flex-direction: column; gap: 22px; }
-  h2 { margin: 0 0 8px; font-size: 11px; letter-spacing: 1.5px; color: var(--mute); font-weight: 500; text-transform: uppercase; }
-  #patterns, .row { display: flex; flex-wrap: wrap; gap: 6px; }
-  button { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 12px; cursor: pointer; }
-  button:hover { border-color: var(--mute); }
-  button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-  #params label { display: grid; grid-template-columns: 110px 1fr 48px; align-items: center; gap: 10px; font-size: 12px; margin: 8px 0; }
-  #params output { text-align: right; color: var(--mute); font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
-  input[type=range] { width: 100%; accent-color: var(--fg); }
-  input[type=text] { width: 100%; background: var(--panel); border: 1px solid var(--line); color: var(--fg); padding: 8px 10px; border-radius: 6px; font: inherit; font-size: 13px; margin-bottom: 6px; }
-  #themes { display: flex; gap: 8px; }
-  #themes button { width: 32px; height: 32px; padding: 0; border-radius: 50%; display: grid; place-items: center; border: 2px solid transparent; }
-  #themes button.on { border-color: var(--fg); }
-  #themes i { display: block; width: 10px; height: 10px; border-radius: 50%; }
-  .actions button { padding: 9px 14px; border-radius: 8px; }
-  .actions .primary { background: var(--fg); color: var(--bg); }
-  #seed { color: var(--mute); font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
-  select { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; font-size: 12px; }
-  kbd { color: var(--mute); font-size: 11px; }
-  @media (max-width: 900px) { main { grid-template-columns: 1fr; } #sheet { width: 100%; } }
+  main { display: block; max-width: 900px; padding: 64px 32px; }
+  .intro { color: var(--mute); max-width: 520px; margin: 0 0 40px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+  a.card { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 28px; color: inherit; text-decoration: none; }
+  a.card:hover { border-color: var(--mute); }
+  a.card h3 { margin: 0 0 6px; font-size: 20px; }
+  a.card p { margin: 0; color: var(--mute); font-size: 13px; }
+  a.card small { display: block; margin-top: 18px; font-size: 11px; letter-spacing: 1.5px; color: var(--mute); }
 </style>
 </head>
 <body>
-<header><h1>Poster Lab</h1><span>generative · seeded · printable</span></header>
+<header><h1>Poster Lab</h1><span>your data, printed</span></header>
 <main>
-  <div class="stage"><canvas id="sheet"></canvas></div>
-  <aside>
-    <section><h2>Pattern</h2><div id="patterns"></div></section>
-    <section><h2>Tune</h2><div id="params"></div></section>
-    <section><h2>Text</h2>
-      <input id="title" type="text" placeholder="Title (defaults to pattern name)" maxlength="40">
-      <input id="sub" type="text" placeholder="Subtitle / date / place" maxlength="60">
-    </section>
-    <section><h2>Palette</h2><div id="themes"></div></section>
-    <section class="actions"><h2>Sheet</h2>
-      <div class="row">
-        <button id="roll" class="primary">Roll again</button>
-        <button id="prev">←</button><button id="next">→</button>
-        <button id="recolour">Recolour</button>
-        <button id="random">Randomize all</button>
-      </div>
-      <p id="seed"></p>
-      <div class="row">
-        <select id="size"><option value="2">PNG 2000×2828</option><option value="3" selected>PNG 3000×4242 (A3 @ 300dpi-ish)</option><option value="5">PNG 5000×7070</option></select>
-        <button id="download" class="primary">Download</button>
-        <button id="copy">Copy link</button>
-      </div>
-      <p><kbd>space</kbd> roll &nbsp; <kbd>←</kbd><kbd>→</kbd> seed ±1</p>
-    </section>
-  </aside>
+  <p class="intro">Print-ready posters made from a moment that is yours. Nothing is uploaded — every sheet is drawn in your browser.</p>
+  <div class="cards">
+    <a class="card" href="starmap/"><h3>Star Map</h3><p>The sky above a place on a night that mattered. Date + city in, a constellation chart out.</p><small>WHEN · WHERE</small></a>
+    <a class="card" href="patterns/"><h3>Patterns</h3><p>Nine generative patterns, seeded and tunable. Roll until it feels right.</p><small>SEEDED</small></a>
+  </div>
 </main>
-<script type="module" src="app.js"></script>
 </body>
 </html>
