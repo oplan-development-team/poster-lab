@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Words — Poster Lab</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Playfair+Display:wght@900&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<style>
+  textarea { width: 100%; background: var(--panel); border: 1px solid var(--line); color: var(--fg); padding: 8px 10px; border-radius: 6px; font: inherit; font-size: 13px; resize: vertical; margin-bottom: 6px; }
+  #layouts button, #fonts button { text-transform: capitalize; }
+  label.chk { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+</style>
+</head>
+<body>
+<header><h1><a href="../">Poster Lab</a> / Words</h1><span>a line you keep saying, set big</span></header>
+<main>
+  <div class="stage"><canvas id="sheet"></canvas></div>
+  <aside>
+    <section><h2>Words</h2>
+      <textarea id="hero" rows="3" placeholder="Big words — one line per row"></textarea>
+      <textarea id="small" rows="2" placeholder="Small lines — lyric, credit, date"></textarea>
+      <input id="label" type="text" placeholder="Corner label (e.g. YANGON · 2026)" maxlength="30">
+    </section>
+    <section><h2>Layout</h2><div id="layouts" class="row"></div></section>
+    <section><h2>Type</h2><div id="fonts" class="row"></div></section>
+    <section><h2>Palette</h2><div id="themes"></div></section>
+    <section class="actions"><h2>Sheet</h2>
+      <div class="row">
+        <button id="shuffle">Shuffle accents</button>
+        <label class="chk"><input id="grain" type="checkbox"> Grain</label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <select id="size"><option value="2">PNG 2000×2828</option><option value="3" selected>PNG 3000×4242</option><option value="5">PNG 5000×7070</option></select>
+        <button id="download" class="primary">Download</button>
+        <button id="copy">Copy link</button>
+      </div>
+    </section>
+  </aside>
+</main>
+<script type="module" src="words.js"></script>
+</body>
+</html>

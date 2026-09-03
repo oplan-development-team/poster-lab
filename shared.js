@@ -15,7 +15,7 @@ export const SANS = '-apple-system, "Helvetica Neue", Inter, Arial, sans-serif';
 export const mulberry32 = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 
 // Draw bg + header/footer text, then call drawArt(ctx, artW, artH) clipped to the art area.
-// t = { title, sub, r1, r2, fl, fr, spaced }
+// t = { title, sub, r1, r2, fl, fr, spaced, bleed }  — bleed: art may run to the sheet edge
 export function drawSheet(ctx, scale, th, t, drawArt) {
   const { W, H, M, TOP, BOT } = SHEET;
   ctx.save(); ctx.scale(scale, scale);
@@ -32,7 +32,7 @@ export function drawSheet(ctx, scale, th, t, drawArt) {
   ctx.textAlign = 'right'; ctx.fillText(t.fr || 'POSTER LAB', W - M, H - M + 6);
   ctx.fillStyle = th.ac; ctx.beginPath(); ctx.arc(M + 4, H - M - 20, 4, 0, 7); ctx.fill();
   const aw = W - 2 * M, ah = H - TOP - BOT;
-  ctx.save(); ctx.translate(M, TOP); ctx.beginPath(); ctx.rect(0, 0, aw, ah); ctx.clip();
+  ctx.save(); ctx.translate(M, TOP); ctx.beginPath(); t.bleed ? ctx.rect(-M, -TOP, W, H) : ctx.rect(0, 0, aw, ah); ctx.clip();
   ctx.strokeStyle = th.ink; ctx.fillStyle = th.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.letterSpacing = '0px';
   drawArt(ctx, aw, ah);
   ctx.restore(); ctx.restore();
