@@ -7,6 +7,9 @@ Live: https://oplan-development-team.github.io/poster-lab/
 | Page | What goes in | What comes out |
 |---|---|---|
 | [`starmap/`](starmap/) | date + time + place | the night sky above that place, stereographic, with constellation lines |
+| [`chart/`](chart/) | date + time + place | natal wheel: tropical signs, equal houses, ten planets, aspect lines |
+| [`weeks/`](weeks/) | a birthday | Life in Weeks: 52 × 90 dots, the weeks you have had filled in |
+| [`moon/`](moon/) | a year | every night's moon phase in a 12 × 31 grid, full moons in accent |
 | [`words/`](words/) | a few lines of text | a typographic poster: bleed / repeat / vertical / shape layouts, two flat colours, grain |
 | [`3d/`](3d/) | a seed + sliders | ten three.js patterns (iso blocks, dot sphere, wave terrain, ring stack, cube cloud, pillars, tunnel, torus knot, louvers, sphere grid) painted onto the sheet |
 | [`patterns/`](patterns/) | a seed + a few sliders | one of nine generative patterns on a typographic sheet |
@@ -23,6 +26,9 @@ node starmap/check.mjs   # astro math self-check (Polaris sits north at alt ≈ 
 - `starmap/` — `astro.js` (LST, alt/az, stereographic projection), `starmap.js` (UI), `check.mjs`
 - `words/` — `words.js` (4 layouts, display fonts via Google Fonts: Anton, Archivo Black, Playfair Display)
 - `three-sheet.js` — shared WebGLRenderer → `drawImage` into the 2D sheet; `3d/patterns3d.js` pattern objects return `{ scene, camera }`
+- `chart/` — `ephem.js` (JPL approximate elements + truncated Meeus moon, ~1°), `chart.js` wheel; `check.mjs` asserts Sun at J2000, a known full moon, ASC/MC geometry
+- `weeks/`, `moon/` — single-file pages; `moon/check.mjs` checks the phase formula against a known full/new moon
+- Name Cipher (patterns + 3d): `cipher()` in `shared.js` hashes a name/date → pattern, seed, palette
 - `words/` glass layout: three.js TextGeometry + PMREM RoomEnvironment chrome, `data/helvetiker_bold.typeface.json`
 - `patterns/` — `patterns.js` (pattern objects: params + draw), `app.js` (UI)
 - `data/` — 5,044 stars to mag 6 and 150 constellation lines, trimmed from [d3-celestial](https://github.com/ofrohn/d3-celestial) (BSD-3)

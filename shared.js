@@ -12,6 +12,8 @@ export const THEMES = [
 ];
 export const MONO = 'ui-monospace, Menlo, Consolas, monospace';
 export const SANS = '-apple-system, "Helvetica Neue", Inter, Arial, sans-serif';
+// FNV-1a: a name or a date → one stable 32-bit number (seed / palette / pattern choice)
+export const cipher = str => { let h = 0x811c9dc5; for (const c of str.trim().toLowerCase()) { h ^= c.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h; };
 export const mulberry32 = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 
 // Draw bg + header/footer text, then call drawArt(ctx, artW, artH) clipped to the art area.

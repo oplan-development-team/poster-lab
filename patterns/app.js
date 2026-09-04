@@ -1,5 +1,5 @@
 import { PATTERNS } from './patterns.js';
-import { THEMES, mulberry32, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink } from '../shared.js';
+import { THEMES, mulberry32, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink, cipher } from '../shared.js';
 
 // ---- seeded rng + perlin noise ----
 function makeNoise(rng) {
@@ -66,6 +66,13 @@ $('#params').oninput = e => { S.p[e.target.dataset.k] = +e.target.value; e.targe
 $('#title').oninput = e => { S.title = e.target.value; render(); };
 $('#sub').oninput = e => { S.sub = e.target.value; render(); };
 $('#roll').onclick = () => { S.seed = newSeed(); render(); };
+$('#name').onchange = e => { // Name Cipher: the same name always lands on the same pattern, seed and palette
+  const v = e.target.value.trim(); if (!v) return;
+  const h = cipher(v);
+  S.pat = PATTERNS[h % PATTERNS.length]; S.p = Object.fromEntries(S.pat.params.map(q => [q.k, q.d]));
+  S.seed = h % 1e9; S.theme = (h >>> 8) % THEMES.length; S.title = v; $('#title').value = v;
+  buildPatterns(); buildParams(); buildThemes(); render();
+};
 $('#prev').onclick = () => { S.seed = (S.seed - 1 + 1e9) % 1e9; render(); };
 $('#next').onclick = () => { S.seed = (S.seed + 1) % 1e9; render(); };
 $('#recolour').onclick = () => { S.theme = (S.theme + 1 + Math.floor(Math.random() * (THEMES.length - 1))) % THEMES.length; buildThemes(); render(); };

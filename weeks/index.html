@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life in Weeks — Poster Lab</title>
+<link rel="stylesheet" href="../shared.css">
+<style>.field { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 10px; margin: 6px 0; font-size: 12px; color: var(--mute); } .field input { width: 100%; margin: 0; }</style>
+</head>
+<body>
+<header><h1><a href="../">Poster Lab</a> / Life in Weeks</h1><span>every week you have had, and the ones ahead</span></header>
+<main>
+  <div class="stage"><canvas id="sheet"></canvas></div>
+  <aside>
+    <section><h2>You</h2>
+      <div class="field"><span>Born</span><input id="birth" type="date"></div>
+      <div class="field"><span>Years</span><input id="years" type="number" min="1" max="120"></div>
+      <input id="name" type="text" placeholder="Name (optional title)" maxlength="30" style="margin-top:6px">
+    </section>
+    <section><h2>Marks</h2><div id="shapes" class="row"></div></section>
+    <section><h2>Palette</h2><div id="themes"></div></section>
+    <section class="actions"><h2>Sheet</h2>
+      <div class="row">
+        <select id="size"><option value="2">PNG 2000×2828</option><option value="3" selected>PNG 3000×4242</option><option value="5">PNG 5000×7070</option></select>
+        <button id="download" class="primary">Download</button>
+        <button id="copy">Copy link</button>
+      </div>
+      <p class="hint">Your birthday stays in the link only if you copy it. Nothing is sent anywhere.</p>
+    </section>
+  </aside>
+</main>
+<script type="module" src="weeks.js"></script>
+</body>
+</html>
