@@ -128,3 +128,18 @@ export function composeSheet(ctx, scale, th, t, rng, drawArt, force) {
   }
   ctx.restore();
 }
+
+// App chrome light/dark: follows the OS until the user taps the toggle; choice remembered per browser.
+(function initMode() {
+  if (typeof document === 'undefined') return;
+  let saved = null; try { saved = localStorage.getItem('mode'); } catch {}
+  const apply = m => { document.documentElement.dataset.mode = m; if (btn) btn.textContent = m === 'light' ? '◑' : '◐'; };
+  let btn;
+  const start = () => {
+    const h = document.querySelector('header'); if (!h) return;
+    btn = document.createElement('button'); btn.id = 'mode'; btn.title = 'Light / dark'; h.appendChild(btn);
+    btn.onclick = () => { const m = document.documentElement.dataset.mode === 'light' ? 'dark' : 'light'; apply(m); try { localStorage.setItem('mode', m); } catch {} };
+    apply(saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  };
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', start) : start();
+})();

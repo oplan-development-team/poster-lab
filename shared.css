@@ -1,14 +1,16 @@
-:root { --bg: #0e0e0f; --fg: #e9e7e1; --mute: #7d7b76; --line: #232325; --panel: #151517; }
+:root { --bg: #0e0e0f; --fg: #e9e7e1; --mute: #7d7b76; --line: #232325; --panel: #151517; color-scheme: dark; }
+:root[data-mode="light"] { --bg: #f4f3ef; --fg: #161616; --mute: #7a7873; --line: #e1dfd9; --panel: #ffffff; color-scheme: light; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, "Helvetica Neue", Inter, Arial, sans-serif; }
-header { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 32px; border-bottom: 1px solid var(--line); }
+header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 32px; border-bottom: 1px solid var(--line); }
 header h1 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
 header h1 a { color: var(--mute); text-decoration: none; font-weight: 400; }
-header span { color: var(--mute); font-size: 12px; }
+header span { color: var(--mute); font-size: 12px; margin-left: auto; }
+#mode { width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 14px; line-height: 1; flex-shrink: 0; }
 main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 32px; padding: 32px; max-width: 1400px; margin: 0 auto; }
 .stage { display: flex; justify-content: center; align-items: flex-start; }
-#sheet { width: min(100%, calc((100vh - 130px) / 1.414)); aspect-ratio: 1 / 1.414; box-shadow: 0 30px 80px rgba(0,0,0,.6); display: block; }
-aside { display: flex; flex-direction: column; gap: 22px; }
+#sheet { width: min(100%, calc((100vh - 130px) / 1.414)); aspect-ratio: 1 / 1.414; box-shadow: 0 30px 80px rgba(0,0,0,.45); display: block; }
+aside { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 h2 { margin: 0 0 8px; font-size: 11px; letter-spacing: 1.5px; color: var(--mute); font-weight: 500; text-transform: uppercase; }
 .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 button { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 12px; cursor: pointer; }
@@ -16,13 +18,20 @@ button:hover { border-color: var(--mute); }
 button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 button.primary { background: var(--fg); color: var(--bg); }
 .actions button { padding: 9px 14px; border-radius: 8px; }
-input[type=text], input[type=date], input[type=time], input[type=number] { background: var(--panel); border: 1px solid var(--line); color: var(--fg); padding: 8px 10px; border-radius: 6px; font: inherit; font-size: 13px; color-scheme: dark; }
+input[type=text], input[type=date], input[type=time], input[type=number], textarea { background: var(--panel); border: 1px solid var(--line); color: var(--fg); padding: 8px 10px; border-radius: 6px; font: inherit; font-size: 13px; }
 input[type=text] { width: 100%; margin-bottom: 6px; }
 input[type=range] { width: 100%; accent-color: var(--fg); }
 #themes { display: flex; flex-wrap: wrap; gap: 8px; }
-#themes button { width: 32px; height: 32px; padding: 0; border-radius: 50%; display: grid; place-items: center; border: 2px solid transparent; }
+#themes button { flex: 0 0 32px; width: 32px; height: 32px; padding: 0; border-radius: 50%; display: grid; place-items: center; border: 2px solid transparent; }
 #themes button.on { border-color: var(--fg); }
 #themes i { display: block; width: 10px; height: 10px; border-radius: 50%; }
 select { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; font-size: 12px; }
 kbd, .hint { color: var(--mute); font-size: 11px; }
-@media (max-width: 900px) { main { grid-template-columns: 1fr; } #sheet { width: 100%; } }
+@media (max-width: 900px) {
+  header { padding: 12px 16px; }
+  header span { display: none; }
+  main { grid-template-columns: 1fr; gap: 16px; padding: 0 16px 32px; }
+  /* the sheet stays pinned while the controls scroll underneath it */
+  .stage { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 12px 0; border-bottom: 1px solid var(--line); }
+  #sheet { width: auto; height: 46vh; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+}
