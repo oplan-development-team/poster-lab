@@ -8,7 +8,7 @@ Live: https://oplan-development-team.github.io/poster-lab/
 |---|---|---|
 | [`starmap/`](starmap/) | date + time + place | the night sky above that place, stereographic, with constellation lines |
 | [`words/`](words/) | a few lines of text | a typographic poster: bleed / repeat / vertical / shape layouts, two flat colours, grain |
-| [`3d/`](3d/) | a seed + sliders | four three.js patterns (iso blocks, dot sphere, wave terrain, ring stack) painted onto the sheet |
+| [`3d/`](3d/) | a seed + sliders | ten three.js patterns (iso blocks, dot sphere, wave terrain, ring stack, cube cloud, pillars, tunnel, torus knot, louvers, sphere grid) painted onto the sheet |
 | [`patterns/`](patterns/) | a seed + a few sliders | one of nine generative patterns on a typographic sheet |
 
 Every poster is reproducible from its URL — copy the link to share the exact sheet. PNG export at 2000 / 3000 / 5000 px wide (A-series ratio).

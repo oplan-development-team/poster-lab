@@ -99,4 +99,127 @@ export const PATTERNS = [
       return { scene, camera };
     },
   },
+  {
+    id: 'cube-cloud', name: 'Cube Cloud', tags: 'PHYSICS',
+    params: [
+      { k: 'count', l: 'Cubes', min: 10, max: 600, step: 10, d: 160 },
+      { k: 'size', l: 'Size', min: 10, max: 200, step: 5, d: 60 },
+      { k: 'vary', l: 'Size Vary', min: 0, max: 1, step: 0.05, d: 0.6 },
+      { k: 'depth', l: 'Depth', min: 0.2, max: 3, step: 0.1, d: 1.2 },
+      { k: 'accent', l: 'Accent', min: 0, max: 0.5, step: 0.01, d: 0.1 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), mat = new THREE.MeshLambertMaterial({ color: ink }), acc = new THREE.MeshLambertMaterial({ color: accent });
+      for (let i = 0; i < p.count; i++) {
+        const s = p.size * (1 - p.vary * rng()), m = new THREE.Mesh(new THREE.BoxGeometry(s, s, s), rng() < p.accent ? acc : mat);
+        m.position.set((rng() - 0.5) * W * 1.2, (rng() - 0.5) * H * 1.2, (rng() - 0.5) * W * p.depth);
+        m.rotation.set(rng() * 6.28, rng() * 6.28, rng() * 6.28); scene.add(m);
+      }
+      lights(THREE, scene, accent);
+      const camera = new THREE.PerspectiveCamera(40, W / H, 1, 20000); camera.position.z = (H / 2) / Math.tan(20 * Math.PI / 180) + W * p.depth / 2;
+      return { scene, camera };
+    },
+  },
+  {
+    id: 'pillars', name: 'Pillars', tags: 'ISOMETRIC',
+    params: [
+      { k: 'cols', l: 'Columns', min: 3, max: 30, step: 1, d: 14 },
+      { k: 'height', l: 'Height', min: 0.2, max: 8, step: 0.1, d: 3 },
+      { k: 'radius', l: 'Radius', min: 0.1, max: 0.5, step: 0.02, d: 0.3 },
+      { k: 'wave', l: 'Wave', min: 0, max: 1, step: 0.05, d: 0.6 },
+      { k: 'accent', l: 'Accent', min: 0, max: 0.5, step: 0.01, d: 0.06 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), n = p.cols, cell = 100, half = n * cell / 2, ph = rng() * 6.28, f = 0.5 + rng();
+      const mat = new THREE.MeshLambertMaterial({ color: ink }), acc = new THREE.MeshLambertMaterial({ color: accent });
+      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+        const w = 0.5 + 0.5 * Math.sin((i + j) / n * 6.28 * f + ph), h = cell * (0.3 + p.height * (p.wave * w + (1 - p.wave) * rng()));
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(cell * p.radius, cell * p.radius, h, 24), rng() < p.accent ? acc : mat);
+        m.position.set(i * cell - half + cell / 2, h / 2, j * cell - half + cell / 2); scene.add(m);
+      }
+      lights(THREE, scene, accent);
+      return { scene, camera: ortho(THREE, W, H, half * 1.35) };
+    },
+  },
+  {
+    id: 'tunnel', name: 'Tunnel', tags: 'RADIAL',
+    params: [
+      { k: 'rings', l: 'Rings', min: 5, max: 80, step: 1, d: 30 },
+      { k: 'sides', l: 'Sides', min: 3, max: 64, step: 1, d: 6 },
+      { k: 'twist', l: 'Twist', min: 0, max: 0.5, step: 0.01, d: 0.08 },
+      { k: 'tube', l: 'Tube', min: 1, max: 30, step: 1, d: 6 },
+      { k: 'drift', l: 'Drift', min: 0, max: 1, step: 0.05, d: 0.3 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), R = W * 0.7, dx = (rng() - 0.5) * p.drift, dy = (rng() - 0.5) * p.drift, hit = Math.floor(rng() * p.rings);
+      for (let i = 0; i < p.rings; i++) {
+        const z = -i * R * 0.35, m = new THREE.Mesh(new THREE.TorusGeometry(R, p.tube, 6, p.sides), new THREE.MeshBasicMaterial({ color: i === hit ? accent : ink }));
+        m.position.set(dx * i * 40, dy * i * 40, z); m.rotation.z = i * p.twist; scene.add(m);
+      }
+      const camera = new THREE.PerspectiveCamera(70, W / H, 1, 50000); camera.position.z = R * 0.6;
+      return { scene, camera };
+    },
+  },
+  {
+    id: 'knot', name: 'Torus Knot', tags: 'ORGANIC',
+    params: [
+      { k: 'twists', l: 'Twists', min: 1, max: 9, step: 1, d: 2 }, // keys p/s/t are taken by the URL hash (pattern/seed/theme)
+      { k: 'loops', l: 'Loops', min: 1, max: 12, step: 1, d: 3 },
+      { k: 'tube', l: 'Tube', min: 0.02, max: 0.5, step: 0.01, d: 0.12 },
+      { k: 'wire', l: 'Wireframe', min: 0, max: 1, step: 1, d: 1 },
+      { k: 'segs', l: 'Detail', min: 16, max: 400, step: 8, d: 200 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), R = W * 0.3;
+      const geo = new THREE.TorusKnotGeometry(R, R * p.tube, p.segs, p.wire ? 8 : 24, p.twists, p.loops);
+      const m = new THREE.Mesh(geo, p.wire ? new THREE.MeshBasicMaterial({ color: ink, wireframe: true }) : new THREE.MeshLambertMaterial({ color: ink }));
+      m.rotation.set(rng() * 6.28, rng() * 6.28, 0); scene.add(m);
+      if (!p.wire) lights(THREE, scene, accent);
+      const camera = new THREE.PerspectiveCamera(35, W / H, 1, 20000); camera.position.z = (H / 2) / Math.tan(17.5 * Math.PI / 180);
+      return { scene, camera };
+    },
+  },
+  {
+    id: 'louvers', name: 'Louvers', tags: 'GRID',
+    params: [
+      { k: 'slats', l: 'Slats', min: 5, max: 80, step: 1, d: 28 },
+      { k: 'thick', l: 'Thickness', min: 0.1, max: 1, step: 0.05, d: 0.45 },
+      { k: 'wave', l: 'Wave', min: 0, max: 400, step: 10, d: 160 },
+      { k: 'freq', l: 'Frequency', min: 0.5, max: 4, step: 0.1, d: 1.5 },
+      { k: 'tilt', l: 'Tilt', min: 0, max: 1.2, step: 0.05, d: 0.5 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), step = H * 0.9 / p.slats, ph = rng() * 6.28, hit = Math.floor(rng() * p.slats);
+      const mat = new THREE.MeshLambertMaterial({ color: ink }), acc = new THREE.MeshLambertMaterial({ color: accent });
+      for (let i = 0; i < p.slats; i++) {
+        const t = i / p.slats, m = new THREE.Mesh(new THREE.BoxGeometry(W * 1.3, step * p.thick, W * 0.3), i === hit ? acc : mat);
+        m.position.set(Math.sin(t * 6.28 * p.freq + ph) * p.wave, (t - 0.5) * H * 0.9, 0); m.rotation.x = Math.sin(t * 6.28 * p.freq + ph) * p.tilt; scene.add(m);
+      }
+      lights(THREE, scene, accent);
+      const camera = new THREE.PerspectiveCamera(35, W / H, 1, 20000); camera.position.set(0, H * 0.1, (H / 2) / Math.tan(17.5 * Math.PI / 180)); camera.lookAt(0, 0, 0);
+      return { scene, camera };
+    },
+  },
+  {
+    id: 'sphere-grid', name: 'Sphere Grid', tags: 'GRID',
+    params: [
+      { k: 'cols', l: 'Columns', min: 3, max: 24, step: 1, d: 9 },
+      { k: 'min', l: 'Min Size', min: 0.05, max: 0.5, step: 0.01, d: 0.1 },
+      { k: 'max', l: 'Max Size', min: 0.1, max: 0.6, step: 0.01, d: 0.45 },
+      { k: 'freq', l: 'Frequency', min: 0.5, max: 4, step: 0.1, d: 1.2 },
+      { k: 'accent', l: 'Accent', min: 0, max: 0.5, step: 0.01, d: 0.06 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), n = p.cols, cell = 100, half = n * cell / 2, ax = rng() * 6.28, ph = rng() * 6.28;
+      const mat = new THREE.MeshLambertMaterial({ color: ink }), acc = new THREE.MeshLambertMaterial({ color: accent }), rows = Math.round(n * H / W);
+      for (let i = 0; i < n; i++) for (let j = 0; j < rows; j++) {
+        const w = 0.5 + 0.5 * Math.sin((i * Math.cos(ax) + j * Math.sin(ax)) / n * 6.28 * p.freq + ph), r = cell * (p.min + (p.max - p.min) * w);
+        const m = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 16), rng() < p.accent ? acc : mat);
+        m.position.set(i * cell - half + cell / 2, (j - rows / 2 + 0.5) * cell, 0); scene.add(m);
+      }
+      lights(THREE, scene, accent);
+      const camera = new THREE.OrthographicCamera(-half * 1.05, half * 1.05, half * 1.05 * H / W, -half * 1.05 * H / W, -5000, 5000); camera.position.z = 1000;
+      return { scene, camera };
+    },
+  },
 ];
