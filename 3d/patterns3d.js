@@ -1,0 +1,102 @@
+// Each pattern: { id, name, tags, params, build(env) → { scene, camera } }
+// env = { THREE, W, H, p, rng, ink, accent }
+const fib = (n, i) => { const y = 1 - (i / (n - 1)) * 2, r = Math.sqrt(1 - y * y), t = i * 2.399963; return [Math.cos(t) * r, y, Math.sin(t) * r]; };
+const lights = (THREE, scene, ac) => { scene.add(new THREE.AmbientLight(0xffffff, 0.45)); const d = new THREE.DirectionalLight(0xffffff, 2.2); d.position.set(1, 2, 0.6); scene.add(d); const a = new THREE.DirectionalLight(ac, 0.8); a.position.set(-1, 0.5, -1); scene.add(a); };
+const ortho = (THREE, W, H, span) => { const c = new THREE.OrthographicCamera(-span * W / H, span * W / H, span, -span, -5000, 5000); c.position.set(1, 1, 1).multiplyScalar(1000); c.lookAt(0, 0, 0); return c; };
+
+export const PATTERNS = [
+  {
+    id: 'iso-blocks', name: 'Iso Blocks', tags: 'ISOMETRIC',
+    params: [
+      { k: 'cols', l: 'Columns', min: 3, max: 24, step: 1, d: 10 },
+      { k: 'density', l: 'Density', min: 0.1, max: 1, step: 0.05, d: 0.75 },
+      { k: 'height', l: 'Height', min: 0.2, max: 6, step: 0.1, d: 2.5 },
+      { k: 'gap', l: 'Gap', min: 0, max: 0.6, step: 0.02, d: 0.08 },
+      { k: 'accent', l: 'Accent', min: 0, max: 0.5, step: 0.01, d: 0.08 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), n = p.cols, cell = 100, half = n * cell / 2;
+      const mat = new THREE.MeshLambertMaterial({ color: ink }), acc = new THREE.MeshLambertMaterial({ color: accent });
+      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+        if (rng() > p.density) continue;
+        const h = cell * (0.2 + rng() * p.height), s = cell * (1 - p.gap);
+        const m = new THREE.Mesh(new THREE.BoxGeometry(s, h, s), rng() < p.accent ? acc : mat);
+        m.position.set(i * cell - half + cell / 2, h / 2, j * cell - half + cell / 2); scene.add(m);
+      }
+      lights(THREE, scene, accent);
+      return { scene, camera: ortho(THREE, W, H, half * 1.35) };
+    },
+  },
+  {
+    id: 'dot-sphere', name: 'Dot Sphere', tags: 'RADIAL',
+    params: [
+      { k: 'points', l: 'Points', min: 200, max: 8000, step: 100, d: 2500 },
+      { k: 'dot', l: 'Dot Size', min: 1, max: 20, step: 0.5, d: 5 },
+      { k: 'radius', l: 'Radius', min: 0.3, max: 1.4, step: 0.05, d: 0.9 },
+      { k: 'tilt', l: 'Tilt', min: 0, max: 1.5, step: 0.05, d: 0.4 },
+      { k: 'rings', l: 'Rings', min: 0, max: 24, step: 1, d: 6 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), R = W / 2 * p.radius, N = p.points, pos = new Float32Array(N * 3);
+      for (let i = 0; i < N; i++) { const [x, y, z] = fib(N, i); pos.set([x * R, y * R, z * R], i * 3); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const pts = new THREE.Points(g, new THREE.PointsMaterial({ color: ink, size: p.dot, sizeAttenuation: false }));
+      const grp = new THREE.Group(); grp.add(pts);
+      for (let i = 0; i < p.rings; i++) {
+        const y = -R + (i + 0.5) * 2 * R / p.rings, r = Math.sqrt(R * R - y * y);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 1.2, 4, 96), new THREE.MeshBasicMaterial({ color: i === Math.floor(p.rings / 2) ? accent : ink }));
+        ring.rotation.x = Math.PI / 2; ring.position.y = y; grp.add(ring);
+      }
+      grp.rotation.set(p.tilt, rng() * 6.28, 0); scene.add(grp);
+      const camera = new THREE.PerspectiveCamera(35, W / H, 1, 20000); camera.position.z = (H / 2) / Math.tan(17.5 * Math.PI / 180);
+      return { scene, camera };
+    },
+  },
+  {
+    id: 'wave-terrain', name: 'Wave Terrain', tags: 'NOISE',
+    params: [
+      { k: 'segs', l: 'Resolution', min: 10, max: 120, step: 2, d: 48 },
+      { k: 'amp', l: 'Amplitude', min: 0, max: 300, step: 5, d: 120 },
+      { k: 'freq', l: 'Frequency', min: 0.5, max: 6, step: 0.1, d: 2 },
+      { k: 'pitch', l: 'Camera Pitch', min: 0.2, max: 1.4, step: 0.05, d: 0.9 },
+      { k: 'solid', l: 'Solid Faces', min: 0, max: 1, step: 1, d: 0 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), size = W * 2.2, geo = new THREE.PlaneGeometry(size, size, p.segs, p.segs), v = geo.attributes.position;
+      const waves = Array.from({ length: 4 }, () => [rng() * 6.28, (0.5 + rng()) * p.freq / size * 6.28, rng() * 6.28]);
+      for (let i = 0; i < v.count; i++) {
+        const x = v.getX(i), y = v.getY(i); let z = 0;
+        for (const [a, f, ph] of waves) z += Math.sin((x * Math.cos(a) + y * Math.sin(a)) * f + ph);
+        v.setZ(i, z * p.amp / 2);
+      }
+      geo.computeVertexNormals();
+      const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: ink, wireframe: true }));
+      mesh.rotation.x = -Math.PI / 2; scene.add(mesh);
+      if (p.solid) { const s = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: accent, polygonOffset: true, polygonOffsetFactor: 1 })); s.rotation.x = -Math.PI / 2; scene.add(s); lights(THREE, scene, ink); }
+      const camera = new THREE.PerspectiveCamera(45, W / H, 1, 20000);
+      camera.position.set(0, Math.sin(p.pitch) * W * 1.4, Math.cos(p.pitch) * W * 1.4); camera.lookAt(0, 0, 0);
+      return { scene, camera };
+    },
+  },
+  {
+    id: 'ring-stack', name: 'Ring Stack', tags: 'ORGANIC',
+    params: [
+      { k: 'rings', l: 'Rings', min: 3, max: 60, step: 1, d: 24 },
+      { k: 'radius', l: 'Radius', min: 0.2, max: 1, step: 0.05, d: 0.6 },
+      { k: 'tube', l: 'Tube', min: 1, max: 40, step: 1, d: 8 },
+      { k: 'twist', l: 'Twist', min: 0, max: 1, step: 0.02, d: 0.3 },
+      { k: 'spread', l: 'Spread', min: 0.2, max: 2, step: 0.05, d: 1 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), R = W / 2 * p.radius, step = H * 0.8 * p.spread / p.rings, hit = Math.floor(rng() * p.rings);
+      const mat = new THREE.MeshLambertMaterial({ color: ink }), acc = new THREE.MeshLambertMaterial({ color: accent });
+      for (let i = 0; i < p.rings; i++) {
+        const m = new THREE.Mesh(new THREE.TorusGeometry(R * (0.6 + 0.4 * Math.sin(i / p.rings * Math.PI)), p.tube, 12, 96), i === hit ? acc : mat);
+        m.position.y = (i - p.rings / 2) * step; m.rotation.set(Math.PI / 2 + Math.sin(i * p.twist) * 0.6, 0, Math.cos(i * p.twist * 0.7) * 0.6); scene.add(m);
+      }
+      lights(THREE, scene, accent);
+      const camera = new THREE.PerspectiveCamera(35, W / H, 1, 20000); camera.position.set(0, H * 0.15, (H / 2) / Math.tan(17.5 * Math.PI / 180) * 1.05); camera.lookAt(0, 0, 0);
+      return { scene, camera };
+    },
+  },
+];

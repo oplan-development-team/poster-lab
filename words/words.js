@@ -1,4 +1,5 @@
 import { MONO, SANS, mulberry32, drawSheet, fitCanvas, exportPNG, copyLink } from '../shared.js';
+import { renderer, paint } from '../three-sheet.js';
 
 // Palettes: two flat colours + one accent, lifted from the reference posters (red/blue, neon/red, red/cream, black/cream…)
 const THEMES = [
@@ -12,7 +13,7 @@ const THEMES = [
   { n: 'Night', bg: '#111', ink: '#efe6d2', ac: '#ff3b1f' },
 ];
 const FONTS = { condensed: 'Anton', wide: '"Archivo Black"', serif: '"Playfair Display"' };
-const LAYOUTS = ['bleed', 'repeat', 'vertical', 'shape'];
+const LAYOUTS = ['bleed', 'repeat', 'vertical', 'shape', 'glass'];
 
 const $ = s => document.querySelector(s), canvas = $('#sheet');
 const S = { hero: 'CALL IT\nWHAT YOU\nWANT', small: 'You don\'t need to save me\nAll the liars are calling me one', label: '', layout: 'bleed', font: 'condensed', theme: 0, grain: 1, seed: 7 };
@@ -95,16 +96,50 @@ const layouts = {
     ctx.font = `600 12px ${MONO}`; ctx.letterSpacing = '2px'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
     ctx.fillText(small.join('   ·   ').toUpperCase(), 0, 0); ctx.restore();
   },
+  // 3D chrome/glass type (Vitrium Opus vibe). three.js is loaded only when this layout is picked.
+  glass(ctx, W, H, hero, small, th, rng, _font, scale) {
+    const { THREE, TextGeometry, font } = G, R = renderer(THREE, W * scale, H * scale);
+    if (!G.env) { const { RoomEnvironment } = G; G.env = new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(), 0.04).texture; }
+    const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, W / H, 1, 20000);
+    cam.position.z = (H / 2) / Math.tan(15 * Math.PI / 180);
+    const mat = new THREE.MeshPhysicalMaterial({ color: th.ink, metalness: 0.55, roughness: 0.22, envMap: G.env, envMapIntensity: 2.2, clearcoat: 1, clearcoatRoughness: 0.1, iridescence: 0.7, iridescenceIOR: 1.4 });
+    const group = new THREE.Group(), lh = 0.86, sizes = [], meshes = [];
+    for (const line of hero) {
+      const geo = new TextGeometry(line, { font, size: 100, height: 30, bevelEnabled: true, bevelThickness: 3, bevelSize: 2, bevelSegments: 2, curveSegments: 8 });
+      geo.computeBoundingBox(); const bb = geo.boundingBox, w = bb.max.x - bb.min.x;
+      geo.translate(-(bb.min.x + w / 2), 0, 0);
+      const s = W * 0.96 / w; sizes.push(s * 100);
+      const m = new THREE.Mesh(geo, mat); m.scale.setScalar(s); meshes.push(m); group.add(m);
+    }
+    const total = sizes.reduce((a, s) => a + s * lh, 0), k = Math.min(1, H * 0.8 / total);
+    let y = total * k / 2;
+    meshes.forEach((m, i) => { const s = sizes[i] * k; m.scale.multiplyScalar(k); y -= s * 0.72; m.position.y = y; y -= s * (lh - 0.72); });
+    group.rotation.set((rng() - 0.5) * 0.5, (rng() - 0.5) * 0.7, (rng() - 0.5) * 0.15);
+    scene.add(group, new THREE.AmbientLight(0xffffff, 0.4));
+    const l = new THREE.DirectionalLight(th.ac, 4); l.position.set(-1, 1, 1); scene.add(l);
+    const rim = new THREE.DirectionalLight(0xffffff, 3); rim.position.set(1, -0.5, 0.5); scene.add(rim);
+    paint(ctx, R, scene, cam, W, H);
+    ctx.fillStyle = th.ink; smallBlock(ctx, small, W, H - 20 - small.length * 20, 'right');
+  },
 };
+let G;
+async function ensureGlass() {
+  if (G) return;
+  const THREE = await import('three');
+  const [{ TextGeometry }, { FontLoader }, { RoomEnvironment }] = await Promise.all([
+    import('three/addons/geometries/TextGeometry.js'), import('three/addons/loaders/FontLoader.js'), import('three/addons/environments/RoomEnvironment.js')]);
+  const font = await new FontLoader().loadAsync('../data/helvetiker_bold.typeface.json'); // ponytail: one typeface for 3D; Anton would need a facetype.js conversion
+  G = { THREE, TextGeometry, RoomEnvironment, font };
+}
 
 function draw(ctx, scale) {
   const th = THEMES[S.theme], rng = mulberry32(S.seed), font = FONTS[S.font];
   const hero = S.hero.split('\n').map(l => l.trim()).filter(Boolean), small = S.small.split('\n').map(l => l.trim()).filter(Boolean);
   const label = (S.label || `WORDS  ·  ${new Date().getFullYear()}`).toUpperCase();
   drawSheet(ctx, scale, th, { title: '', r1: label, r2: `NO. ${String(S.seed).padStart(3, '0')}`, fl: `${S.layout.toUpperCase()}  ·  ${th.n.toUpperCase()}`, bleed: true },
-    (ctx, W, H) => { layouts[S.layout](ctx, W, H, hero, small, th, rng, font); if (S.grain) grain(ctx, W, H); });
+    (ctx, W, H) => { layouts[S.layout](ctx, W, H, hero, small, th, rng, font, scale); if (S.grain) grain(ctx, W, H); });
 }
-function render() { fitCanvas(canvas, draw); saveHash(); }
+async function render() { if (S.layout === 'glass') await ensureGlass(); fitCanvas(canvas, draw); saveHash(); }
 
 // ---- ui ----
 const pills = (el, keys, cur, on) => { el.innerHTML = keys.map(k => `<button data-k="${k}" class="${k === cur ? 'on' : ''}">${k}</button>`).join(''); el.onclick = e => { if (e.target.dataset.k) on(e.target.dataset.k); }; };

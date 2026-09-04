@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D — Poster Lab</title>
+<link rel="stylesheet" href="../shared.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<style>
+  #patterns { display: flex; flex-wrap: wrap; gap: 6px; }
+  #params label { display: grid; grid-template-columns: 110px 1fr 48px; align-items: center; gap: 10px; font-size: 12px; margin: 8px 0; }
+  #params output { text-align: right; color: var(--mute); font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+  #seed { color: var(--mute); font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+<header><h1><a href="../">Poster Lab</a> / 3D</h1><span>three.js · seeded · printable</span></header>
+<main>
+  <div class="stage"><canvas id="sheet"></canvas></div>
+  <aside>
+    <section><h2>Pattern</h2><div id="patterns"></div></section>
+    <section><h2>Tune</h2><div id="params"></div></section>
+    <section><h2>Text</h2>
+      <input id="title" type="text" placeholder="Title (defaults to pattern name)" maxlength="40">
+      <input id="sub" type="text" placeholder="Subtitle / date / place" maxlength="60">
+    </section>
+    <section><h2>Palette</h2><div id="themes"></div></section>
+    <section class="actions"><h2>Sheet</h2>
+      <div class="row">
+        <button id="roll" class="primary">Roll again</button>
+        <button id="prev">←</button><button id="next">→</button>
+        <button id="recolour">Recolour</button>
+        <button id="random">Randomize all</button>
+      </div>
+      <p id="seed"></p>
+      <div class="row">
+        <select id="size"><option value="2">PNG 2000×2828</option><option value="3" selected>PNG 3000×4242 (A3 @ 300dpi-ish)</option></select>
+        <button id="download" class="primary">Download</button>
+        <button id="copy">Copy link</button>
+      </div>
+      <p><kbd>space</kbd> roll &nbsp; <kbd>←</kbd><kbd>→</kbd> seed ±1</p>
+    </section>
+  </aside>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
