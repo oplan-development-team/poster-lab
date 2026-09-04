@@ -19,7 +19,7 @@ button.primary { background: var(--fg); color: var(--bg); }
 input[type=text], input[type=date], input[type=time], input[type=number] { background: var(--panel); border: 1px solid var(--line); color: var(--fg); padding: 8px 10px; border-radius: 6px; font: inherit; font-size: 13px; color-scheme: dark; }
 input[type=text] { width: 100%; margin-bottom: 6px; }
 input[type=range] { width: 100%; accent-color: var(--fg); }
-#themes { display: flex; gap: 8px; }
+#themes { display: flex; flex-wrap: wrap; gap: 8px; }
 #themes button { width: 32px; height: 32px; padding: 0; border-radius: 50%; display: grid; place-items: center; border: 2px solid transparent; }
 #themes button.on { border-color: var(--fg); }
 #themes i { display: block; width: 10px; height: 10px; border-radius: 50%; }

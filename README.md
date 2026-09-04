@@ -14,6 +14,8 @@ Live: https://oplan-development-team.github.io/poster-lab/
 | [`3d/`](3d/) | a seed + sliders | ten three.js patterns (iso blocks, dot sphere, wave terrain, ring stack, cube cloud, pillars, tunnel, torus knot, louvers, sphere grid) painted onto the sheet |
 | [`patterns/`](patterns/) | a seed + a few sliders | one of nine generative patterns on a typographic sheet |
 
+Roll again re-sets the whole sheet the way Book of Shapes does — band top / bottom / number / bleed / framed, title case, inverted art, crop — from the same seed. Palettes are mostly popular [ColorHunt](https://colorhunt.co) palettes reduced to two flat colours and an accent.
+
 Every poster is reproducible from its URL — copy the link to share the exact sheet. PNG export at 2000 / 3000 / 5000 px wide (A-series ratio).
 
 ```bash

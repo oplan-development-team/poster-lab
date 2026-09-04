@@ -102,10 +102,11 @@ const layouts = {
     if (!G.env) { const { RoomEnvironment } = G; G.env = new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(), 0.04).texture; }
     const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, W / H, 1, 20000);
     cam.position.z = (H / 2) / Math.tan(15 * Math.PI / 180);
-    const mat = new THREE.MeshPhysicalMaterial({ color: th.ink, metalness: 0.55, roughness: 0.22, envMap: G.env, envMapIntensity: 2.2, clearcoat: 1, clearcoatRoughness: 0.1, iridescence: 0.7, iridescenceIOR: 1.4 });
+    const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, attenuationColor: new THREE.Color(th.ink), attenuationDistance: 160, metalness: 0, roughness: 0.02, transmission: 1, thickness: 120, ior: 2.0, dispersion: 8, clearcoat: 1, clearcoatRoughness: 0.02, iridescence: 0.5, iridescenceIOR: 1.7, envMap: G.env, envMapIntensity: 3, specularIntensity: 2 }); // clear crystal, tinted by depth
+    scene.background = new THREE.Color(th.bg);
     const group = new THREE.Group(), lh = 0.86, sizes = [], meshes = [];
     for (const line of hero) {
-      const geo = new TextGeometry(line, { font, size: 100, height: 30, bevelEnabled: true, bevelThickness: 3, bevelSize: 2, bevelSegments: 2, curveSegments: 8 });
+      const geo = new TextGeometry(line, { font, size: 100, depth: 30, bevelEnabled: true, bevelThickness: 3, bevelSize: 2, bevelSegments: 2, curveSegments: 8 });
       geo.computeBoundingBox(); const bb = geo.boundingBox, w = bb.max.x - bb.min.x;
       geo.translate(-(bb.min.x + w / 2), 0, 0);
       const s = W * 0.96 / w; sizes.push(s * 100);
@@ -116,12 +117,16 @@ const layouts = {
     meshes.forEach((m, i) => { const s = sizes[i] * k; m.scale.multiplyScalar(k); y -= s * 0.72; m.position.y = y; y -= s * (lh - 0.72); });
     group.rotation.set((rng() - 0.5) * 0.5, (rng() - 0.5) * 0.7, (rng() - 0.5) * 0.15);
     scene.add(group, new THREE.AmbientLight(0xffffff, 0.4));
-    const l = new THREE.DirectionalLight(th.ac, 4); l.position.set(-1, 1, 1); scene.add(l);
-    const rim = new THREE.DirectionalLight(0xffffff, 3); rim.position.set(1, -0.5, 0.5); scene.add(rim);
+    sparkle(THREE, scene, th.ac, W);
     paint(ctx, R, scene, cam, W, H);
     ctx.fillStyle = th.ink; smallBlock(ctx, small, W, H - 20 - small.length * 20, 'right');
   },
 };
+// Crystal sparkle: a handful of small hot point lights so every facet catches a highlight
+function sparkle(THREE, scene, accent, W) {
+  const spots = [[-1, 1, 1, 0xffffff, 6], [1, -0.6, 0.8, 0xffffff, 4], [0.3, 1.2, -0.4, accent, 5], [-0.8, -1, 0.6, accent, 3]];
+  for (const [x, y, z, c, i] of spots) { const l = new THREE.PointLight(c, i * W * W * 2.5, 0, 2); l.position.set(x * W, y * W, z * W); scene.add(l); }
+}
 let G;
 async function ensureGlass() {
   if (G) return;
