@@ -222,4 +222,43 @@ export const PATTERNS = [
       return { scene, camera };
     },
   },
+  {
+    id: 'lego', name: 'Lego Bricks', tags: 'ISOMETRIC',
+    params: [
+      { k: 'cols', l: 'Baseplate', min: 4, max: 20, step: 1, d: 10 },
+      { k: 'layers', l: 'Layers', min: 1, max: 12, step: 1, d: 5 },
+      { k: 'density', l: 'Density', min: 0.2, max: 1, step: 0.05, d: 0.7 },
+      { k: 'big', l: 'Big Bricks', min: 0, max: 1, step: 0.05, d: 0.5 },
+      { k: 'accent', l: 'Accent', min: 0, max: 1, step: 0.05, d: 0.35 },
+    ],
+    build({ THREE, W, H, p, rng, ink, accent }) {
+      const scene = new THREE.Scene(), n = p.cols, u = 60, h = u * 1.2, half = n * u / 2;
+      const base = new THREE.Color(ink), acc = new THREE.Color(accent), mid = base.clone().lerp(acc, 0.5);
+      const mats = [base, acc, mid].map(c => new THREE.MeshLambertMaterial({ color: c }));
+      const studGeo = new THREE.CylinderGeometry(u * 0.3, u * 0.3, u * 0.21, 20);
+      const sizes = [[1, 1], [1, 2], [2, 1], [2, 2], [2, 4], [4, 2], [1, 4], [4, 1]];
+      for (let L = 0; L < p.layers; L++) {
+        const used = Array.from({ length: n }, () => new Array(n).fill(false));
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+          if (used[i][j] || rng() > p.density * (1 - L / (p.layers + 2))) continue;
+          const pick = rng() < p.big ? sizes[3 + Math.floor(rng() * 5)] : sizes[Math.floor(rng() * 3)], [sx, sz] = pick;
+          if (i + sx > n || j + sz > n) continue;
+          let free = true; for (let a = 0; a < sx; a++) for (let b = 0; b < sz; b++) if (used[i + a][j + b]) free = false;
+          if (!free) continue;
+          for (let a = 0; a < sx; a++) for (let b = 0; b < sz; b++) used[i + a][j + b] = true;
+          const mat = mats[rng() < p.accent ? (rng() < 0.6 ? 1 : 2) : 0];
+          const brick = new THREE.Mesh(new THREE.BoxGeometry(sx * u - 2, h, sz * u - 2), mat);
+          const x = (i + sx / 2) * u - half, z = (j + sz / 2) * u - half, y = L * h + h / 2;
+          brick.position.set(x, y, z); scene.add(brick);
+          for (let a = 0; a < sx; a++) for (let b = 0; b < sz; b++) {
+            const stud = new THREE.Mesh(studGeo, mat); stud.position.set((i + a + 0.5) * u - half, L * h + h + u * 0.105, (j + b + 0.5) * u - half); scene.add(stud);
+          }
+        }
+      }
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(n * u + u, u * 0.3, n * u + u), new THREE.MeshLambertMaterial({ color: base, transparent: true, opacity: 0.12 }));
+      plate.position.y = -u * 0.15; scene.add(plate);
+      lights(THREE, scene, accent);
+      return { scene, camera: ortho(THREE, W, H, half * 1.45) };
+    },
+  },
 ];
