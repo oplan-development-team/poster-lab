@@ -1,5 +1,13 @@
 // Shared sheet frame: palettes, header/footer typography, canvas sizing, PNG export.
-export const SHEET = { W: 1000, H: 1414, M: 80, TOP: 150, BOT: 100 }; // A-series ratio
+export const SHEET = { W: 1000, H: 1414, M: 80, TOP: 150, BOT: 100 }; // A-series ratio; landscape swaps W/H
+export function setOrientation(land) {
+  SHEET.W = land ? 1414 : 1000; SHEET.H = land ? 1000 : 1414;
+  document.querySelector('#sheet')?.classList.toggle('land', land);
+  const b = document.querySelector('#orient'); if (b) b.textContent = land ? '▭' : '▯';
+}
+export const isLandscape = () => SHEET.W > SHEET.H;
+// keep `o=l` in every page's share link
+export const withOrient = h => { isLandscape() ? h.set('o', 'l') : h.delete('o'); return h; };
 // Palettes: bg / ink / accent. Most are popular ColorHunt palettes (colorhunt.co) reduced to two flat colours + one accent.
 export const THEMES = [
   { n: 'Paper', bg: '#f3efe6', ink: '#171717', ac: '#c8412b' },
@@ -106,7 +114,7 @@ export function composeSheet(ctx, scale, th, t, rng, drawArt, force) {
   if (layout === 'frame') {
     drawSheet(ctx, 1, th, { ...t, title }, (c, w, h) => art(0, 0, w, h));
   } else if (layout === 'band' || layout === 'bottom') {
-    const hb = 320 + rng() * 150, bc = bandInk ? th.ink : th.ac, tc = bandInk ? th.bg : (lum(th.ac) > 0.55 ? th.ink : th.bg), y = layout === 'band' ? 0 : H - hb;
+    const hb = (320 + rng() * 150) * H / 1414, bc = bandInk ? th.ink : th.ac, tc = bandInk ? th.bg : (lum(th.ac) > 0.55 ? th.ink : th.bg), y = layout === 'band' ? 0 : H - hb;
     ctx.fillStyle = bc; ctx.fillRect(0, y, W, hb);
     big(M, y + M * 0.8, W - 2 * M, hb - M * 1.8 - 30, tc);
     meta(M, y + hb - 34, tc); ctx.textAlign = 'right'; ctx.fillText(t.fl || '', W - M, y + hb - 34);
@@ -139,6 +147,11 @@ export function composeSheet(ctx, scale, th, t, rng, drawArt, force) {
     const h = document.querySelector('header'); if (!h) return;
     btn = document.createElement('button'); btn.id = 'mode'; btn.title = 'Light / dark'; h.appendChild(btn);
     btn.onclick = () => { const m = document.documentElement.dataset.mode === 'light' ? 'dark' : 'light'; apply(m); try { localStorage.setItem('mode', m); } catch {} };
+    if (document.querySelector('#sheet')) { // portrait / landscape toggle; pages re-render on 'resize'
+      const ob = document.createElement('button'); ob.id = 'orient'; ob.title = 'Portrait / landscape'; h.insertBefore(ob, btn);
+      ob.onclick = () => { setOrientation(!isLandscape()); dispatchEvent(new Event('resize')); };
+      setOrientation(new URLSearchParams(location.hash.slice(1)).get('o') === 'l');
+    }
     apply(saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
   };
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', start) : start();

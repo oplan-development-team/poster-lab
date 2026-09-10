@@ -1,4 +1,4 @@
-import { THEMES, MONO, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink } from '../shared.js';
+import { THEMES, MONO, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink, withOrient } from '../shared.js';
 import { lst, project, localToUTC } from './astro.js';
 
 const [STARS, LINES] = await Promise.all(['../data/stars.json', '../data/lines.json'].map(u => fetch(u).then(r => r.json())));
@@ -10,7 +10,7 @@ function loadHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   for (const k in S) if (h.has(k)) S[k] = typeof S[k] === 'number' ? +h.get(k) : h.get(k);
 }
-function saveHash() { history.replaceState(null, '', '#' + new URLSearchParams(S)); }
+function saveHash() { history.replaceState(null, '', '#' + withOrient(new URLSearchParams(S))); }
 const fmtCoord = (v, pos, neg) => `${Math.abs(v).toFixed(4)}° ${v >= 0 ? pos : neg}`;
 const fmtDate = d => new Date(d + 'T00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
 

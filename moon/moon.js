@@ -1,4 +1,4 @@
-import { THEMES, MONO, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink } from '../shared.js';
+import { THEMES, MONO, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink, withOrient, isLandscape } from '../shared.js';
 
 const $ = s => document.querySelector(s), canvas = $('#sheet');
 const S = { year: new Date().getFullYear(), name: '', mark: '', theme: 1 };
@@ -7,7 +7,7 @@ export const phase = t => (((t - NEW0) / 86400000 / SYN) % 1 + 1) % 1; // 0 new 
 const MONTHS = 'JFMAMJJASOND';
 
 function loadHash() { const h = new URLSearchParams(location.hash.slice(1)); for (const k in S) if (h.has(k)) S[k] = typeof S[k] === 'number' ? +h.get(k) : h.get(k); }
-const saveHash = () => history.replaceState(null, '', '#' + new URLSearchParams(S));
+const saveHash = () => history.replaceState(null, '', '#' + withOrient(new URLSearchParams(S)));
 
 // Lit side on the right while waxing (as seen from the northern hemisphere).
 function drawMoon(ctx, x, y, r, ph, ink, bg) {
@@ -25,16 +25,18 @@ function draw(ctx, scale) {
     title: (S.name || String(y)).toUpperCase(), spaced: true,
     sub: `${days.length} NIGHTS  ·  ${fulls} FULL MOONS`,
     r1: 'MOON PHASES', r2: 'NORTHERN SKY',
-    fl: `ONE COLUMN IS ONE MONTH  ·  ${th.n.toUpperCase()}`,
+    fl: `ONE ${isLandscape() ? 'ROW' : 'COLUMN'} IS ONE MONTH  ·  ${th.n.toUpperCase()}`,
   }, (ctx, W, H) => {
-    // months across, days down: the portrait sheet gives 31 rows more room than 31 columns
-    const top = 26, cell = Math.min(W / 12, (H - top) / 31), r = cell * 0.36, x0 = (W - cell * 12) / 2, y0 = top + (H - top - cell * 31) / 2;
+    // portrait: 12 month columns × 31 day rows; landscape: 31 day columns × 12 month rows
+    const land = W > H, C = land ? 31 : 12, Rw = land ? 12 : 31, top = 26, left = land ? 30 : 0;
+    const cell = Math.min((W - left) / C, (H - top) / Rw), r = cell * 0.36, x0 = left + (W - left - cell * C) / 2, y0 = top + (H - top - cell * Rw) / 2;
     ctx.font = `500 10px ${MONO}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = th.ink; ctx.globalAlpha = 0.55;
-    for (let m = 0; m < 12; m++) ctx.fillText(MONTHS[m], x0 + m * cell + cell / 2, y0 - 16);
+    for (let m = 0; m < 12; m++) land ? ctx.fillText(MONTHS[m], x0 - 16, y0 + m * cell + cell / 2) : ctx.fillText(MONTHS[m], x0 + m * cell + cell / 2, y0 - 16);
     ctx.globalAlpha = 1;
+    const cellXY = (m, d) => land ? [x0 + (d - 1) * cell + cell / 2, y0 + m * cell + cell / 2] : [x0 + m * cell + cell / 2, y0 + (d - 1) * cell + cell / 2];
     const mark = S.mark && S.mark.startsWith(y + '-') ? S.mark.split('-').map(Number) : null;
     for (const [m, d, p] of days) {
-      const x = x0 + m * cell + cell / 2, yy = y0 + (d - 1) * cell + cell / 2, full = Math.abs(p - 0.5) < 0.5 / SYN;
+      const [x, yy] = cellXY(m, d), full = Math.abs(p - 0.5) < 0.5 / SYN;
       drawMoon(ctx, x, yy, r, p, full ? th.ac : th.ink, th.bg);
       if (mark && mark[1] === m + 1 && mark[2] === d) { ctx.strokeStyle = th.ac; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, yy, r * 1.55, 0, 7); ctx.stroke(); }
     }

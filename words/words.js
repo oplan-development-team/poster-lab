@@ -1,4 +1,4 @@
-import { MONO, SANS, mulberry32, drawSheet, fitCanvas, exportPNG, copyLink } from '../shared.js';
+import { MONO, SANS, mulberry32, drawSheet, fitCanvas, exportPNG, copyLink, withOrient } from '../shared.js';
 import { renderer, paint } from '../three-sheet.js';
 
 // Palettes: two flat colours + one accent, lifted from the reference posters (red/blue, neon/red, red/cream, black/cream…)
@@ -22,7 +22,7 @@ function loadHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   for (const k in S) if (h.has(k)) S[k] = typeof S[k] === 'number' ? +h.get(k) : h.get(k);
 }
-const saveHash = () => history.replaceState(null, '', '#' + new URLSearchParams(S));
+const saveHash = () => history.replaceState(null, '', '#' + withOrient(new URLSearchParams(S)));
 
 // ---- helpers ----
 const fitSize = (ctx, text, font, width) => { ctx.font = `100px ${font}`; return 100 * width / Math.max(1, ctx.measureText(text).width); };

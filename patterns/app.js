@@ -1,5 +1,5 @@
 import { PATTERNS } from './patterns.js';
-import { THEMES, mulberry32, composeSheet, LAYOUTS, fitCanvas, exportPNG, themeButtons, copyLink, cipher } from '../shared.js';
+import { THEMES, mulberry32, composeSheet, LAYOUTS, fitCanvas, exportPNG, themeButtons, copyLink, cipher, withOrient } from '../shared.js';
 
 // ---- seeded rng + perlin noise ----
 function makeNoise(rng) {
@@ -34,7 +34,7 @@ function loadHash() {
 function saveHash() {
   const h = new URLSearchParams({ p: S.pat.id, s: S.seed, t: S.theme, l: S.layout, ...S.p });
   if (S.title) h.set('title', S.title); if (S.sub) h.set('sub', S.sub);
-  history.replaceState(null, '', '#' + h);
+  history.replaceState(null, '', '#' + withOrient(h));
 }
 
 // ---- drawing ----

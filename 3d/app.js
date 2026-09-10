@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { PATTERNS } from './patterns3d.js';
-import { THEMES, mulberry32, composeSheet, LAYOUTS, fitCanvas, exportPNG, themeButtons, copyLink, cipher } from '../shared.js';
+import { THEMES, mulberry32, composeSheet, LAYOUTS, fitCanvas, exportPNG, themeButtons, copyLink, cipher, withOrient } from '../shared.js';
 import { renderer, paint } from '../three-sheet.js';
 
 const S = { pat: PATTERNS[0], seed: 0, theme: 0, title: '', sub: '', p: {}, mat: 'flat', layout: 'auto' };
@@ -20,7 +20,7 @@ function loadHash() {
 function saveHash() {
   const h = new URLSearchParams({ p: S.pat.id, s: S.seed, t: S.theme, l: S.layout, m: S.mat, ...S.p });
   if (S.title) h.set('title', S.title); if (S.sub) h.set('sub', S.sub);
-  history.replaceState(null, '', '#' + h);
+  history.replaceState(null, '', '#' + withOrient(h));
 }
 function draw(ctx, scale) {
   const th = THEMES[S.theme], rng = mulberry32(S.seed), seed = String(S.seed).padStart(9, '0');

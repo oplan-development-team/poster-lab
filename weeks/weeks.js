@@ -1,11 +1,11 @@
-import { THEMES, MONO, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink } from '../shared.js';
+import { THEMES, MONO, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink, withOrient, isLandscape } from '../shared.js';
 
 const $ = s => document.querySelector(s), canvas = $('#sheet');
 const S = { birth: '1990-01-01', years: 90, name: '', theme: 0, shape: 'dot' };
 const WEEK = 7 * 86400000;
 
 function loadHash() { const h = new URLSearchParams(location.hash.slice(1)); for (const k in S) if (h.has(k)) S[k] = typeof S[k] === 'number' ? +h.get(k) : h.get(k); }
-const saveHash = () => history.replaceState(null, '', '#' + new URLSearchParams(S));
+const saveHash = () => history.replaceState(null, '', '#' + withOrient(new URLSearchParams(S)));
 const fmt = d => new Date(d + 'T00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
 
 function draw(ctx, scale) {
@@ -14,14 +14,15 @@ function draw(ctx, scale) {
     title: (S.name || 'LIFE IN WEEKS').toUpperCase(), spaced: !!S.name,
     sub: `BORN ${fmt(S.birth)}`,
     r1: `${lived.toLocaleString()} WEEKS LIVED`, r2: `OF ${total.toLocaleString()}  ·  ${S.years} YEARS`,
-    fl: `ONE ROW IS ONE YEAR  ·  ${th.n.toUpperCase()}`,
+    fl: `ONE ${isLandscape() ? 'COLUMN' : 'ROW'} IS ONE YEAR  ·  ${th.n.toUpperCase()}`,
   }, (ctx, W, H) => {
-    const left = 34, cell = Math.min((W - left) / 52, (H - 10) / S.years), r = cell * 0.3, x0 = left + (W - left - cell * 52) / 2, y0 = (H - cell * S.years) / 2;
-    ctx.font = `500 9px ${MONO}`; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.globalAlpha = 0.55;
-    for (let y = 0; y < S.years; y += 10) ctx.fillText(String(y), left - 12, y0 + y * cell + cell / 2);
+    const land = W > H, C = land ? S.years : 52, Rw = land ? 52 : S.years, left = 34;
+    const cell = Math.min((W - left) / C, (H - 10) / Rw), r = cell * 0.3, x0 = left + (W - left - cell * C) / 2, y0 = (H - cell * Rw) / 2;
+    ctx.font = `500 9px ${MONO}`; ctx.textAlign = land ? 'center' : 'right'; ctx.textBaseline = 'middle'; ctx.globalAlpha = 0.55;
+    for (let y = 0; y < S.years; y += 10) land ? ctx.fillText(String(y), x0 + y * cell + cell / 2, y0 - 12) : ctx.fillText(String(y), left - 12, y0 + y * cell + cell / 2);
     ctx.globalAlpha = 1;
     for (let i = 0; i < total; i++) {
-      const x = x0 + (i % 52) * cell + cell / 2, y = y0 + Math.floor(i / 52) * cell + cell / 2, past = i < lived, now = i === lived;
+      const wk = i % 52, yr = Math.floor(i / 52), x = x0 + (land ? yr : wk) * cell + cell / 2, y = y0 + (land ? wk : yr) * cell + cell / 2, past = i < lived, now = i === lived;
       ctx.fillStyle = now ? th.ac : th.ink; ctx.strokeStyle = th.ink;
       ctx.globalAlpha = past || now ? 1 : 0.28; ctx.lineWidth = 0.8;
       ctx.beginPath();

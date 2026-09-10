@@ -6,10 +6,11 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 header h1 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
 header h1 a { color: var(--mute); text-decoration: none; font-weight: 400; }
 header span { color: var(--mute); font-size: 12px; margin-left: auto; }
-#mode { width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 14px; line-height: 1; flex-shrink: 0; }
+#mode, #orient { width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 14px; line-height: 1; flex-shrink: 0; }
 main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 32px; padding: 32px; max-width: 1400px; margin: 0 auto; }
 .stage { display: flex; justify-content: center; align-items: flex-start; }
 #sheet { width: min(100%, calc((100vh - 130px) / 1.414)); aspect-ratio: 1 / 1.414; box-shadow: 0 30px 80px rgba(0,0,0,.45); display: block; }
+#sheet.land { width: min(100%, calc((100vh - 130px) * 1.414)); aspect-ratio: 1.414 / 1; }
 aside { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 h2 { margin: 0 0 8px; font-size: 11px; letter-spacing: 1.5px; color: var(--mute); font-weight: 500; text-transform: uppercase; }
 .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -33,5 +34,6 @@ kbd, .hint { color: var(--mute); font-size: 11px; }
   main { grid-template-columns: 1fr; gap: 16px; padding: 0 16px 32px; }
   /* the sheet stays pinned while the controls scroll underneath it */
   .stage { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 12px 0; border-bottom: 1px solid var(--line); }
-  #sheet { width: auto; height: 46vh; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+  #sheet.land { width: 100%; height: auto; }
+  #sheet:not(.land) { width: auto; height: 46vh; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
 }

@@ -1,4 +1,4 @@
-import { THEMES, MONO, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink } from '../shared.js';
+import { THEMES, MONO, drawSheet, fitCanvas, exportPNG, themeButtons, copyLink, withOrient } from '../shared.js';
 import { lst, localToUTC } from '../starmap/astro.js';
 import { positions, angles, sign, SIGN_GLYPH, PLANETS, ASPECTS } from './ephem.js';
 
@@ -8,7 +8,7 @@ const SYM = '"Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sa
 const rad = Math.PI / 180, norm = x => ((x % 360) + 360) % 360;
 
 function loadHash() { const h = new URLSearchParams(location.hash.slice(1)); for (const k in S) if (h.has(k)) S[k] = typeof S[k] === 'number' ? +h.get(k) : h.get(k); }
-const saveHash = () => history.replaceState(null, '', '#' + new URLSearchParams(S));
+const saveHash = () => history.replaceState(null, '', '#' + withOrient(new URLSearchParams(S)));
 const fmtCoord = (v, pos, neg) => `${Math.abs(v).toFixed(2)}° ${v >= 0 ? pos : neg}`;
 const fmtDate = d => new Date(d + 'T00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
 
@@ -21,7 +21,7 @@ function draw(ctx, scale) {
     r2: `SUN ${sign(pos.sun).toUpperCase()}  ·  MOON ${sign(pos.moon).toUpperCase()}  ·  ASC ${sign(asc).toUpperCase()}`,
     fl: `TROPICAL  ·  EQUAL HOUSES  ·  ${th.n.toUpperCase()}`,
   }, (ctx, W, H) => {
-    const R = W / 2 - 14, cx = W / 2, cy = R + 20;
+    const land = W > H, R = (land ? H : W) / 2 - 14, cx = R + 14, cy = R + (land ? 0 : 20);
     const at = (lon, r) => { const t = Math.PI + (lon - asc) * rad; return [cx + Math.cos(t) * r, cy - Math.sin(t) * r]; };
     const line = (lon, r1, r2) => { const [x1, y1] = at(lon, r1), [x2, y2] = at(lon, r2); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); };
     ctx.strokeStyle = th.ink; ctx.fillStyle = th.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -55,9 +55,9 @@ function draw(ctx, scale) {
     }
     // legend
     ctx.globalAlpha = 1; ctx.fillStyle = th.ink; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-    const y0 = cy + R + 44, rows = [...PLANETS.map(([k, g]) => [g, k, pos[k]]), ['↑', 'ascendant', asc], ['⊤', 'midheaven', mc]];
+    const y0 = land ? 30 : cy + R + 44, rows = [...PLANETS.map(([k, g]) => [g, k, pos[k]]), ['↑', 'ascendant', asc], ['⊤', 'midheaven', mc]];
     rows.forEach(([g, k, lon], i) => {
-      const col = i % 2, row = Math.floor(i / 2), x = col ? W / 2 + 10 : 0, y = y0 + row * 19;
+      const col = land ? 0 : i % 2, row = land ? i : Math.floor(i / 2), x = land ? 2 * R + 70 : col ? W / 2 + 10 : 0, y = y0 + row * (land ? 24 : 19);
       if (y > H - 14) return;
       ctx.font = `${R * 0.045}px ${SYM}`; ctx.fillText(g, x, y - 2);
       ctx.font = `500 11px ${MONO}`; ctx.fillText(`${k.toUpperCase().padEnd(10)} ${String(Math.floor(lon % 30)).padStart(2)}° ${sign(lon).toUpperCase()}`, x + 26, y + 2);
